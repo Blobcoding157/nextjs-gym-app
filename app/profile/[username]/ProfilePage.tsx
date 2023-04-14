@@ -23,11 +23,12 @@ export default function ProfilePage(props: Props) {
   const [isShredding, setIsShredding] = useState(false);
   const [isBulking, setIsBulking] = useState(false);
   const [isExperienced, setIsExperienced] = useState(false);
+  const [click, setClick] = useState(false);
 
   const [potentialBuddies, setPotentialBuddies] = useState(
     users.filter((buddy: User) => buddy.id !== user.id),
   );
-  const [click, setClick] = useState(false);
+
   const favouriteGym = props.favouriteGym;
   const listOfUsersWithoutMe: User[] = users.filter(
     (buddy: User) => buddy.id !== user.id,
@@ -36,6 +37,22 @@ export default function ProfilePage(props: Props) {
 
   useEffect(() => {
     const filteredBuddies = listOfUsersWithoutMe.filter((buddy: User) => {
+      // if (isShredding && !isBulking && !isExperienced) {
+      //   return buddy.isShredding;
+      // } else if (!isShredding && isBulking && !isExperienced) {
+      //   return buddy.isBulking;
+      // } else if (isShredding && isBulking && !isExperienced) {
+      //   return buddy.isShredding || buddy.isBulking;
+      // } else if (!isShredding && !isBulking && isExperienced) {
+      //   return buddy.isExperienced;
+      // } else if (!isShredding && isBulking && isExperienced) {
+      //   return buddy.isBulking && buddy.isExperienced;
+      // } else if (isShredding && !isBulking && isExperienced) {
+      //   return buddy.isShredding && buddy.isExperienced;
+      // } else {
+      //   return false;
+      // }
+
       switch (true) {
         case isShredding && !isBulking && !isExperienced:
           return buddy.isShredding;
@@ -54,7 +71,8 @@ export default function ProfilePage(props: Props) {
       }
     });
     setPotentialBuddies(filteredBuddies);
-  }, [isBulking, isShredding, isExperienced]);
+  }, [isShredding, isBulking, isExperienced, listOfUsersWithoutMe]);
+
   return (
     <div className={styles.pageDiv}>
       <div className={styles.mainDiv}>
@@ -74,14 +92,13 @@ export default function ProfilePage(props: Props) {
               alt="Your profile"
               height="100"
               width="100"
-            />{' '}
+            />
           </div>
         </div>
 
         <div className={styles.potentialBuddyDiv}>
           <div className={styles.descriptionDiv}>
             <div className={styles.profileDiv}>
-              {' '}
               <div>
                 <a href={`/profile/${user.username}/matches`}>
                   <span className={styles.button}>
@@ -98,10 +115,9 @@ export default function ProfilePage(props: Props) {
                 </span>
               </Link>
               <div>
-                {' '}
                 <a target="_blank" rel="noreferrer" href={favouriteGym.gymLink}>
                   {favouriteGym.gymName}
-                </a>{' '}
+                </a>
               </div>
             </div>
           </div>

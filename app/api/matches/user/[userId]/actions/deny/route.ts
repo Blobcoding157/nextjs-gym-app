@@ -29,15 +29,15 @@ export const PUT = async (request: NextRequest) => {
   const result = matchSchema.safeParse(body);
   if (!result.success) {
     // inside the if statement, result.error.issues there is more information about what is allowing you to create more specific error messages
-    return NextResponse.json({ error: result.error.issues }, { status: 400 });
+    return NextResponse.json({ errors: result.error.issues }, { status: 400 });
   }
 
   // create deny
-  const newMatch = await denyMatchInDatabase(
+  await denyMatchInDatabase(
     result.data.userRequestingId,
     result.data.userPendingId,
   );
   return NextResponse.json({
-    match: { isRequested: false, isAccepted: false, isBlocked: false },
+    success: true,
   });
 };

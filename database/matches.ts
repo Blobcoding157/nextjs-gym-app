@@ -14,58 +14,34 @@ export type PendingRequests = {
   mail: string;
   age: number;
   mobile: string;
-  favourite_gym: string | null;
+  favouriteGym: string | null;
   isShredding: boolean;
   isBulking: boolean;
   isExperienced: boolean;
   profilePicture: string;
 };
-export type Query = Array<Query>;
+
 export type Blocked = Array<Blocked>;
+
 type Matches = {
-  userRequestingId: number;
-  userPendingId: number;
+  userRequestingId: string;
+  userPendingId: string;
+  isRequested: boolean;
+  isAccepted: boolean;
+  isBlocked: boolean;
 };
 
-// export async function addMatch(
-//   user_requesting_id: number,
-//   user_pending_id: number,
-//   is_pending: boolean,
-//   is_accepted: boolean,
-//   is_blocked: boolean,
-// ) {
-//   const client = await pool.connect();
-
-//   try {
-//     const result = await client.query(
-//       'INSERT INTO matches (user_requesting_id, user_pending_id, is_pending, is_accepted, is_blocked) VALUES ($1, $2, $3, $4, $5)',
-//       [
-//         user_requesting_id,
-//         user_pending_id,
-//         is_pending,
-//         is_accepted,
-//         is_blocked,
-//       ],
-//     );
-//     return { success: true, message: 'Match added successfully' };
-//   } catch (err) {
-//     console.error('Error adding match', err);
-//     return { success: false, message: 'Error adding match' };
-//   } finally {
-//     client.release();
-//   }
-// }
 export const addMatch = cache(
   async (
-    user_requesting_id: number,
-    user_pending_id: number,
-    is_pending: boolean,
-    is_accepted: boolean,
-    is_blocked: boolean,
+    userRequestingId: number,
+    userPendingId: number,
+    isRequested: boolean,
+    isAccepted: boolean,
+    isBlocked: boolean,
   ) => {
     const [result] = await sql<Matches[]>`
     INSERT INTO matches (user_requesting_id, user_pending_id, is_pending, is_accepted, is_blocked)
-    VALUES (${user_requesting_id}, ${user_pending_id}, ${is_pending}, ${is_accepted}, ${is_blocked})
+    VALUES (${userRequestingId}, ${userPendingId}, ${isRequested}, ${isAccepted}, ${isBlocked})
     RETURNING true AS success, 'Match added successfully' AS message;
   `;
     return result;
@@ -191,9 +167,12 @@ export const getUnAnsweredMatchRequestById = cache(async (userId: number) => {
   `;
   return pendingRequests;
 });
+
+export type acceptMatchInDatabases = { success: boolean; message: string };
+
 export const acceptMatchInDatabase = cache(
   async (userRequestingId: number, userPendingId: number) => {
-    const [query] = await sql<Query[]>`
+    const [query] = await sql<acceptMatchInDatabases[]>`
     UPDATE matches
     SET is_pending = FALSE, is_accepted = TRUE, is_blocked = FALSE
     WHERE user_requesting_id = ${userRequestingId} AND user_pending_id = ${userPendingId}
@@ -201,10 +180,10 @@ export const acceptMatchInDatabase = cache(
     return query;
   },
 );
-
+export type denyMatchInDatabases = { success: boolean; message: string };
 export const denyMatchInDatabase = cache(
   async (userRequestingId: number, userPendingingId: number) => {
-    const [query] = await sql<Query[]>`
+    const [query] = await sql<denyMatchInDatabases[]>`
     UPDATE matches
     SET is_pending = FALSE, is_accepted = FALSE, is_blocked = FALSE
     WHERE user_requesting_id = ${userRequestingId} AND user_pending_id = ${userPendingingId}
@@ -213,9 +192,11 @@ export const denyMatchInDatabase = cache(
   },
 );
 
+export type blockMatchInDatabases = { success: boolean; message: string };
+
 export const blockMatchInDatabase = cache(
   async (userRequestingId: number, userPendingingId: number) => {
-    const [query] = await sql<Query[]>`
+    const [query] = await sql<blockMatchInDatabases[]>`
     UPDATE matches
     SET is_pending = FALSE, is_accepted = FALSE, is_blocked = TRUE
     WHERE user_requesting_id = ${userRequestingId} AND user_pending_id = ${userPendingingId}
